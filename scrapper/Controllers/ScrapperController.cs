@@ -46,11 +46,23 @@ namespace scrapper.Controllers
                     // getting the park name
                     var parkName = columns[0].InnerText;
 
+                    // Location
+                    var location = columns[1].InnerText;
+
+                    // Area
+                    var area = columns[2].InnerText;
+
+                    // Established
+                    var established = columns[3].InnerText;
+
                     // creating a new parkName entity
                     var newParkName = new parkName
                     {
                         Id = Guid.NewGuid(),
                         Name = parkName,
+                        Location = location,
+                        Area = area,
+                        Established = established
                     };
 
                     // adding the park to the list
