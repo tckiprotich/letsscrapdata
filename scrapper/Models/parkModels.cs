@@ -7,7 +7,7 @@ namespace scrapper.Models
 {
     public class parkModels
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? Country { get; set; }
@@ -15,6 +15,7 @@ namespace scrapper.Models
         public string? Established { get; set; }
         public string? Latitude { get; set; }
         public string? Longitude { get; set; }
+        public string NearestCity { get; set; }
         public string? ImageUrl { get; set; }
         public List<string>? Activities { get; set; }
         public List<string>? OperatingHours { get; set; }

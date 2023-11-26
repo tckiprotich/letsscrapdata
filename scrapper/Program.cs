@@ -2,14 +2,14 @@ global using HtmlAgilityPack;
 global using scrapper.Models;
 global using scrapper.Data;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// in-memory database
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("Scrapper"));
-
+// use sqlite
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=app.db"));
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();

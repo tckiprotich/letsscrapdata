@@ -21,7 +21,7 @@ namespace scrapper.Controllers
             _logger = logger;
         }
 
-        [HttpGet("parkName/Names")]
+        [HttpGet("getParksAfricaName")]
         public async Task<IEnumerable<parkName>> GetParkName()
         {
             var web = new HtmlWeb();
@@ -46,47 +46,37 @@ namespace scrapper.Controllers
                     // getting the park name
                     var parkName = columns[0].InnerText;
 
-                    // adding the park to the list
-                    parkNames.Add(new parkName
+                    // creating a new parkName entity
+                    var newParkName = new parkName
                     {
                         Id = Guid.NewGuid(),
                         Name = parkName,
+                    };
 
-                    });
-                }              
+                    // adding the park to the list
+                    parkNames.Add(newParkName);
 
-
+                    // adding the park to the DbContext
+                    _context.parkName.Add(newParkName);
+                }
             }
 
             // saving the park names to the database
             try
-                {
-                    _logger.LogInformation("Saving changes to the database...");
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation("Successfully saved changes to the database.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "An error occurred while saving changes to the database.");
-                }       
+            {
+                _context.Database.EnsureDeleted();
+                _context.Database.EnsureCreated();
+                _logger.LogInformation("Saving changes to the database...");
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved changes to the database.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while saving changes to the database.");
+            }
 
             return parkNames;
 
-        }
-
-
-
-
-
-        [HttpGet("parksAfrica")]
-        public IEnumerable<parkModels> Get()
-        {
-            var web = new HtmlWeb();
-            // loading the target web page 
-            var doc = web.Load("https://en.wikipedia.org/wiki/List_of_national_parks_in_Africa");
-
-            var parksAfrica = new List<parkModels>();   
-            return parksAfrica;
-        }
+        }        
     }
 }
