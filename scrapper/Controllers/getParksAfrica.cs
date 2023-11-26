@@ -28,12 +28,12 @@ namespace scrapper.Controllers
             // Create a list to store the scraped data
             var parks = new List<parkModels>();
 
-            // foreach (var park in parkNames)
-            // {
+            foreach (var park in parkNames)
+            {
             var web = new HtmlWeb();
-            // var parkNameForUrl = park.Name.Replace(" ", "_");
-            // var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
-            var doc = web.Load("https://en.wikipedia.org/wiki/Hoggar_Mountains");
+            var parkNameForUrl = park.Name.Replace(" ", "_");
+            var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
+            // var doc = web.Load("https://en.wikipedia.org/wiki/Hoggar_Mountains");
 
             var parkNameNode = doc.DocumentNode.SelectSingleNode("//*[@id=\"firstHeading\"]/span");
             var parkName = parkNameNode?.InnerText;
@@ -95,7 +95,7 @@ namespace scrapper.Controllers
             {
                 _logger.LogError(ex, "Error saving park");
             }
-            // }
+            }
 
             // Return the list of parks
             return parks;
