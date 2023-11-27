@@ -19,59 +19,47 @@ namespace scrapper.Controllers
             _logger = logger;
         }
 
-        [HttpGet("parksAfrica")]
-        public async Task<IEnumerable<parkModels>> Get()
+        [HttpGet]
+        public async Task<IEnumerable<parkModels>> GetParkName()
         {
             // Get Names from the database
-            var parkNames = await _context.parkName.ToListAsync();
+            var parkName = await _context.parkName.ToListAsync();
 
-            // Create a list to store the scraped data
-            var parks = new List<parkModels>();
-
-            foreach (var park in parkNames)
+            foreach (var park in parkName)
             {
-            var web = new HtmlWeb();
-            var parkNameForUrl = park.Name.Replace(" ", "_");
-            Console.WriteLine(parkNameForUrl);
-            var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
-            // var doc = web.Load("https://en.wikipedia.org/wiki/Hoggar_Mountains");
+                var parkNameForUrl = park.Name.Replace(" ", "_");
+                var web = new HtmlWeb();
+                var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
 
-            var parkNameNode = doc.DocumentNode.SelectSingleNode("//*[@id=\"firstHeading\"]/span");
-            var parkName = parkNameNode?.InnerText;
+                var parkNamed = doc.DocumentNode.SelectSingleNode("//*[@id=\"firstHeading\"]/span");
+                var description = doc.DocumentNode.SelectSingleNode("//*[@id=\"mw-content-text\"]/div[1]/p[1]");
 
-            var descriptionNode = doc.DocumentNode.SelectSingleNode("//*[@id=\"mw-content-text\"]/div[1]/p[1]");
-            var description = descriptionNode?.InnerText;
+                if (parkNamed != null && description != null)
+                {
+                    var name = parkNamed.InnerText;
+                    var desc = description.InnerText;
 
-            // Update the park with the description
-            park.Description = description;
+                    var newParkName = new parkModels
+                    {
+                        Name = name,
+                        Description = desc,
+                        NearestCity = "N/A",
+                    };
 
-            // Create a new park
-            var newPark = new parkModels
-            {
-                Id = park.Id,
-                Name = park.Name,
-                Description = park.Description
-            };
-
-
-
-            // Add the new park to the list
-            parks.Add(newPark);
-
-            _context.parkModels.Add(newPark);
-            try
-            {
-                _context.Database.EnsureDeleted();
-                _context.Database.EnsureCreated();
-                await _context.SaveChangesAsync();
+                    _context.parkModels.Add(newParkName);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to scrape data for park: {ParkName}", park.Name);
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving park");
-            }
-            }
-            return parks ;
+
+            await _context.SaveChangesAsync();
+
+            // Get the updated list from the database
+            var parks = await _context.parkModels.ToListAsync();
+
+            return parks;
         }
-
     }
 }

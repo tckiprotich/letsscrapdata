@@ -15,7 +15,7 @@ namespace scrapper.Models
         public string? Established { get; set; }
         public string? Latitude { get; set; }
         public string? Longitude { get; set; }
-        public string NearestCity { get; set; }
+        public string? NearestCity { get; set; }
         public string? ImageUrl { get; set; }
         public List<string>? Activities { get; set; }
         public List<string>? OperatingHours { get; set; }
