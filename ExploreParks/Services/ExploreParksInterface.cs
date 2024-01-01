@@ -1,6 +1,10 @@
 global using ExploreParks.Services.Interface;
 global using ExploreParks.Data;
 global using System.Globalization;
+global using System.Net.Http;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,31 +110,44 @@ namespace ExploreParks.Services
 public async Task<ResponseStatus<List<getDescription>>> GetDescriptionAsync()
 {
     // Get Names from Database and store in a list
-    var parkNames = await _context.Parks.ToListAsync();
+     var parkNames = await _context.Parks.Select(p => p.ParkName).ToListAsync();
+    var descriptions = new List<getDescription>();
 
     foreach (var parkName in parkNames)
     {
-        var parkNameForUrl = parkName.ParkName.Replace(" ", "_");
-        var web = new HtmlWeb();
-        var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
-
-        var parkNamed = doc.DocumentNode.SelectSingleNode("//*[@id=\"firstHeading\"]/span");
-        var description = doc.DocumentNode.SelectSingleNode("//*[@id=\"mw-content-text\"]/div[1]/p[1]");
-
-        if (parkNamed != null && description != null)
+        var encodedParkName = Uri.EscapeDataString(parkName);
+        var apiUrl = $"https://en.wikipedia.org/api/rest_v1/page/summary/{encodedParkName}?redirect=true";
+        using (var httpClient = new HttpClient())
         {
-            var name = parkNamed.InnerText;
-            var desc = description.InnerText;
-
-            var newParkName = new getDescription
+            var response = await httpClient.GetAsync(apiUrl);
+            if (response.IsSuccessStatusCode)
             {
-                ParkName = name,
-                ParkDescription = desc,
-                // NearestCity = "N/A",
-            };
+                var json = await response.Content.ReadAsStringAsync();
+                var parkInfo = JsonConvert.DeserializeObject<dynamic>(json);
 
-            _context.Descriptions.Add(newParkName);
-        }               
+                var extract = parkInfo?.extract?.ToString();
+                var latitude = parkInfo?.coordinates?.lat?.ToString();
+                var longitude = parkInfo?.coordinates?.lon?.ToString();
+                var contentUrls = parkInfo.content_urls.desktop.page.ToString();
+                var language = parkInfo.lang.ToString();
+
+                var newDescription = new getDescription
+                {
+                    ParkName = parkName,
+                    ParkDescription = extract,
+                    ParkLatitude = latitude,
+                    ParkLongitude = longitude,
+                    ContentUrls = contentUrls,
+                    Language = language
+                };
+
+                Console.WriteLine($"Park Name: {parkName}");
+
+                _context.Descriptions.Add(newDescription);
+            }
+        }
+       
+           
     }
 
     try
@@ -146,14 +163,11 @@ public async Task<ResponseStatus<List<getDescription>>> GetDescriptionAsync()
         Console.WriteLine("Error occurred: " + e.Message);
     }
 
-    // Get the updated list from the database
-    var updatedDescriptions = await _context.Descriptions.ToListAsync();
-
     return new ResponseStatus<List<getDescription>>
     {
         Success = true,
-        Message = "Parks successfully Added to the database",
-        Data = updatedDescriptions
+        Message = "Parks details successfully Added to the database",
+        Data = descriptions
     };
 }
 

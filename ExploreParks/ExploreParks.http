@@ -1,6 +1,6 @@
-@ExploreParks_HostAddress = http://localhost:5181
+@ExploreParks_HostAddress = http://localhost:5182
 
-GET {{ExploreParks_HostAddress}}/weatherforecast/
+GET {{ExploreParks_HostAddress}}/api/GetDescriptionsUpdated
 Accept: application/json
 
 ###
