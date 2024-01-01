@@ -1,6 +1,6 @@
 global using ExploreParks.Services.Interface;
 global using ExploreParks.Data;
-using System.Globalization;
+global using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +10,13 @@ namespace ExploreParks.Services
 {
     public class ExploreParksInterface : IExploreParksInterface
     {
-
         // db context
         private readonly ExploreParksDbContext _context;
-
         // constructor
         public ExploreParksInterface(ExploreParksDbContext context)
         {
             _context = context;
         }
-
 
         public async Task<ResponseStatus<List<ParkModel>>> GetParksAsync()
         {
@@ -67,7 +64,7 @@ namespace ExploreParks.Services
                         ParkEstablished = established
                     };
 
-                    Console.WriteLine("Park Name: " + parkName);
+
 
                     // adding the new parkModels entity to the list
                     parkModels.Add(newParkModels);
@@ -101,5 +98,66 @@ namespace ExploreParks.Services
 
 
         }
+
+
+
+
+
+public async Task<ResponseStatus<List<getDescription>>> GetDescriptionAsync()
+{
+    // Get Names from Database and store in a list
+    var parkNames = await _context.Parks.ToListAsync();
+
+    foreach (var parkName in parkNames)
+    {
+        var parkNameForUrl = parkName.ParkName.Replace(" ", "_");
+        var web = new HtmlWeb();
+        var doc = web.Load($"https://en.wikipedia.org/wiki/{parkNameForUrl}");
+
+        var parkNamed = doc.DocumentNode.SelectSingleNode("//*[@id=\"firstHeading\"]/span");
+        var description = doc.DocumentNode.SelectSingleNode("//*[@id=\"mw-content-text\"]/div[1]/p[1]");
+
+        if (parkNamed != null && description != null)
+        {
+            var name = parkNamed.InnerText;
+            var desc = description.InnerText;
+
+            var newParkName = new getDescription
+            {
+                ParkName = name,
+                ParkDescription = desc,
+                // NearestCity = "N/A",
+            };
+
+            _context.Descriptions.Add(newParkName);
+        }               
     }
+
+    try
+    {
+        await _context.SaveChangesAsync();
+        await _context.Database.EnsureCreatedAsync();
+        Console.WriteLine("Database created, Saving changes to the database...");
+        await _context.SaveChangesAsync();
+        Console.WriteLine("Changes saved to the database...");
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine("Error occurred: " + e.Message);
+    }
+
+    // Get the updated list from the database
+    var updatedDescriptions = await _context.Descriptions.ToListAsync();
+
+    return new ResponseStatus<List<getDescription>>
+    {
+        Success = true,
+        Message = "Parks successfully Added to the database",
+        Data = updatedDescriptions
+    };
+}
+
+
+    }
+    
 }

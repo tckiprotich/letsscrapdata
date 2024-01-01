@@ -7,8 +7,8 @@ namespace ExploreParks.Services.Interface
 {
     public interface IExploreParksInterface 
     {
-        Task<ResponseStatus<List<ParkModel>>> GetParksAsync();
-        Task<ResponseStatus<List<ParkModel>>> GetDescriptionAsync();
+        Task<ResponseStatus<List<ParkModel>>> GetParksAsync();       
+         Task<ResponseStatus<List<getDescription>>> GetDescriptionAsync();
 
         
     }

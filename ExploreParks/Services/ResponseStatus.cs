@@ -10,7 +10,7 @@ namespace ExploreParks.Services
         
             public bool Success { get; set; }
             public string? Message { get; set; }
-            public List<ParkModel>? Data { get; set; }
+            public T Data { get; set; }
        
     }
 }

@@ -16,6 +16,7 @@ namespace ExploreParks.Data
         public DbSet<ParkModel> Parks { get; set; }
         public DbSet<ContinentModel> Continents { get; set; }
         public DbSet<CountryModel> Countries { get; set; }
+        public DbSet<getDescription> Descriptions { get; set; }
 
     }
 }
