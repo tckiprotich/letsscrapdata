@@ -1,4 +1,6 @@
+global using MongoDB.Bson;
 global using CsvHelper;
+global using MongoDB.Driver;
 global using HtmlAgilityPack;
 global using ExploreParks.Data;
 global using ExploreParks.Models;
@@ -19,9 +21,19 @@ builder.Services.AddControllers();
 // Add services to the container.
 builder.Services.AddScoped<IExploreParksInterface, ExploreParksInterface>();
 
-// Sqlite database
-builder.Services.AddDbContext<ExploreParksDbContext>(options => options.UseSqlite("Data Source=ExploreParks.db"));
+var connection = String.Empty;
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddEnvironmentVariables().AddJsonFile("appsettings.Development.json");
+    connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+}
+else
+{
+    connection = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
+}
 
+builder.Services.AddDbContext<ExploreParksDbContext>(options =>
+    options.UseSqlServer(connection));
 // swagger documentation
 builder.Services.AddSwaggerGen(c =>
 {
